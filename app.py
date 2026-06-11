@@ -4,6 +4,52 @@ from typing import Dict
 from gemini import analyze_code
 
 
+TOPIC_COLORS = {
+    "array": ("#eef6ff", "#0366d6"),
+    "string": ("#eef6ff", "#0366d6"),
+    "two-pointer": ("#e6fffa", "#0d9488"),
+    "sliding-window": ("#e6fffa", "#0d9488"),
+    "binary-search": ("#f3e8ff", "#7c3aed"),
+    "search": ("#f3e8ff", "#7c3aed"),
+    "tree": ("#ecfdf5", "#059669"),
+    "graph": ("#ecfdf5", "#059669"),
+    "dynamic": ("#fff7ed", "#ea580c"),
+    "dp": ("#fff7ed", "#ea580c"),
+    "greedy": ("#fdf2f8", "#db2777"),
+    "math": ("#fefce8", "#ca8a04"),
+    "linked-list": ("#eef2ff", "#4f46e5"),
+    "backtrack": ("#fef2f2", "#dc2626"),
+    "recursion": ("#fef2f2", "#dc2626"),
+    "stack": ("#f0fdf4", "#16a34a"),
+    "queue": ("#f0fdf4", "#16a34a"),
+    "heap": ("#faf5ff", "#9333ea"),
+}
+DEFAULT_TOPIC_COLOR = ("#f3f4f6", "#374151")
+
+
+def get_topic_color(topic: str):
+    """Return (background, text) hex colors for a topic, matching by keyword."""
+    topic_lower = topic.lower()
+    for keyword, colors in TOPIC_COLORS.items():
+        if keyword in topic_lower:
+            return colors
+    return DEFAULT_TOPIC_COLOR
+
+
+def get_complexity_color(complexity: str) -> str:
+    """Return a hex color based on Big-O complexity (green=fast, red=slow)."""
+    c = complexity.lower().replace(" ", "")
+    if "o(1)" in c or "o(logn)" in c:
+        return "#16a34a"  # green
+    if c == "o(n)" or "o(nlogn)" in c or "o(sqrt" in c:
+        return "#ca8a04"  # amber
+    if "o(n^2)" in c or "o(n2)" in c or "o(n²)" in c:
+        return "#ea580c"  # orange
+    if "o(2^n)" in c or "o(n!)" in c:
+        return "#dc2626"  # red
+    return "#9ca3af"  # gray default
+
+
 def init_session_state() -> None:
     """Initialize required Streamlit session state keys."""
     if "show_hint2" not in st.session_state:
@@ -32,7 +78,8 @@ def render_result(result: Dict[str, str]) -> None:
     # Topic badge + bug detection status
     with st.container(border=True):
         topic = safe_get("topic_badge", "-")
-        st.markdown(f"<div style='display:inline-block;padding:6px 10px;border-radius:999px;background:#eef6ff;color:#0366d6;font-weight:600'>{topic}</div>", unsafe_allow_html=True)
+        bg_color, text_color = get_topic_color(topic)
+        st.markdown(f"<div style='display:inline-block;padding:6px 10px;border-radius:999px;background:{bg_color};color:{text_color};font-weight:600'>{topic}</div>", unsafe_allow_html=True)
         bug_detected = safe_get('bug_detected', 'none').lower()
         if "no" in bug_detected or "none" in bug_detected:
             st.success("✅ No bugs detected — nice work!")
@@ -43,7 +90,7 @@ def render_result(result: Dict[str, str]) -> None:
     bug_detected = safe_get('bug_detected', 'none').lower()
     if not ("no" in bug_detected or "none" in bug_detected):
         with st.container(border=True):
-            st.subheader("Hints")
+            st.subheader("💡 Hints")
             st.write("**Hint 1:**")
             st.write(safe_get("hint_1", ""))
             c1, c2 = st.columns(2)
@@ -66,9 +113,16 @@ def render_result(result: Dict[str, str]) -> None:
 
     # Complexity metrics
     with st.container(border=True):
+        st.subheader("📊 Complexity")
+        time_c = safe_get("time_complexity", "-")
+        space_c = safe_get("space_complexity", "-")
         tcol, scol = st.columns(2)
-        tcol.metric("Time", safe_get("time_complexity", "-"))
-        scol.metric("Space", safe_get("space_complexity", "-"))
+        with tcol:
+            st.markdown("**Time**")
+            st.markdown(f"<div style='font-size:28px;font-weight:700;color:{get_complexity_color(time_c)}'>{time_c}</div>", unsafe_allow_html=True)
+        with scol:
+            st.markdown("**Space**")
+            st.markdown(f"<div style='font-size:28px;font-weight:700;color:{get_complexity_color(space_c)}'>{space_c}</div>", unsafe_allow_html=True)
 
 
 def main() -> None:
@@ -90,9 +144,16 @@ def main() -> None:
         st.caption("Built for Microsoft AI Skills Fest — Agents League Hackathon")
 
     left_col, right_col = st.columns(2)
-    problem = left_col.text_area("Problem statement", height=160)
-    code = right_col.text_area("Your code (will be sent to the analyzer but not shown back)", height=220)
-    language = st.selectbox("Language", ["Python", "C++", "Java", "JavaScript"], index=0)
+    problem = left_col.text_area("📝 Problem statement", height=220)
+    code = right_col.text_area("💻 Your code", height=220)
+    language_options = {
+        "🐍 Python": "Python",
+        "⚡ C++": "C++",
+        "☕ Java": "Java",
+        "🟨 JavaScript": "JavaScript",
+    }
+    language_display = st.selectbox("Language", list(language_options.keys()), index=0)
+    language = language_options[language_display]
 
     if st.button("Analyze"):
         if problem.strip() == "" or code.strip() == "":
@@ -116,6 +177,10 @@ def main() -> None:
         bug = res.get("bug_detected", "").lower()
         if "no" in bug or "none" in bug:
             st.balloons()
+        # Easter egg: snow if the solution achieves optimal O(1) complexity
+        time_c = res.get("time_complexity", "").lower().replace(" ", "")
+        if "o(1)" in time_c:
+            st.snow()
 
     render_result(st.session_state.get("result"))
 
