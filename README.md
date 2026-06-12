@@ -15,35 +15,44 @@ An intelligent web application that analyzes Data Structure & Algorithm (DSA) co
 ## Architecture
 
 ```
-┌─────────────────────────────────────────┐
-│      Streamlit Web Interface            │
-│  (Problem + Code Input + Language)      │
-└──────────────┬──────────────────────────┘
-               │ analyze_code()
-               ▼
-┌─────────────────────────────────────────┐
-│     gemini.py (AI Analysis Engine)      │
-│  - Constructs system/user prompts       │
-│  - Calls Google Generative AI (Gemini)  │
-│  - Parses response into structured JSON │
-└──────────────┬──────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────┐
-│   Google Generative AI (Gemini API)     │
-│  - Analyzes code for bugs               │
-│  - Generates teaching hints             │
-│  - Evaluates complexity                 │
-└─────────────────────────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────────┐
-│      Rendered UI Components             │
-│  - Bug detection badge                  │
-│  - Hints with feedback buttons          │
-│  - Complexity metrics                   │
-│  - Celebration animation (if correct)   │
-└─────────────────────────────────────────┘
+___________________________________________________________
+|         DEVELOPMENT (Build-Time with Copilot CLI)       |
+|---------------------------------------------------------|
+| - Generated initial Streamlit app structure & UI layout |
+| - Co-designed Gemini prompt engineering (prompts.py)    |
+| - Built JSON parsing & error-handling logic (gemini.py) |
+| - Debugged edge cases (fallback responses, retries)     |
+| - Accelerated README & docstring generation             |
+|___________________________ _____________________________|
+                            |
+                            | produced
+                            v
+____________________________v______________________________
+|                  RUNTIME ARCHITECTURE                   |
+|---------------------------------------------------------|
+|                 Streamlit Web Interface                 |
+|          (Problem + Code Input + Language)              |
+|                           |                             |
+|                           | analyze_code()              |
+|                           v                             |
+|            gemini.py (AI Analysis Engine)               |
+| - Constructs system/user prompts                        |
+| - Calls Google Generative AI (Gemini)                   |
+| - Parses response into structured JSON                  |
+|                           |                             |
+|                           v                             |
+|          Google Generative AI (Gemini API)              |
+| - Analyzes code for bugs                                |
+| - Generates teaching hints                              |
+| - Evaluates complexity                                  |
+|                           |                             |
+|                           v                             |
+|                Rendered UI Components                   |
+| - Bug detection badge                                   |
+| - Hints with feedback buttons                           |
+| - Complexity metrics                                    |
+| - Celebration animation (if correct)                    |
+|_________________________________________________________|
 ```
 
 ## Local Setup
